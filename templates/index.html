@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Classificador de E-mails</title>
+</head>
+<body>
+    <h1>Classificador de E-mails</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <label>Upload de Arquivo (.txt ou .pdf):</label><br>
+        <input type="file" name="email_file"><br><br>
+
+        <label>Ou digite o texto do e-mail:</label><br>
+        <textarea name="email_text" rows="10" cols="60"></textarea><br><br>
+
+        <button type="submit">Enviar</button>
+    </form>
+
+    {% if email %}
+        <h3>Email Recebido:</h3>
+        <p>{{ email }}</p>
+
+        <h3>Categoria:</h3>
+        <p>{{ result }}</p>
+
+        <h3>Resposta Sugerida:</h3>
+        <p>{{ response }}</p>
+    {% endif %}
+</body>
+</html>
