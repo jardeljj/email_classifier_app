@@ -22,7 +22,7 @@ def preprocess_text(text):
     text = text.translate(str.maketrans('', '', string.punctuation))
 
     # Tokenização
-    tokens = nltk.word_tokenize(text)
+    tokens = text.split()
 
     # Remoção de stopwords e lemmatização
     cleaned = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words]
