@@ -3,7 +3,7 @@ import os
 from classifier.classifier import classify_email
 from auto_reply import generate_auto_reply
 
-import pdfplumber  # Melhor que PyPDF2
+import pdfplumber 
 from dotenv import load_dotenv
 
 # Carregar variáveis do .env
