@@ -5,5 +5,5 @@ pandas
 nltk
 joblib
 pdfplumber
-google-generativeai
 PyPDF2
+google-generativeai>=0.5.0
