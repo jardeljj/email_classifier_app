@@ -1,30 +1,50 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Classificador de E-mails</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificador de E-mails com IA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Classificador de E-mails</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <label>Upload de Arquivo (.txt ou .pdf):</label><br>
-        <input type="file" name="email_file"><br><br>
+    <div class="container">
+        <h1>📧 Classificador de E-mails + Geração de Respostas</h1>
 
-        <label>Ou digite o texto do e-mail:</label><br>
-        <textarea name="email_text" rows="10" cols="60"></textarea><br><br>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="email_file">Enviar arquivo (.txt ou .pdf):</label>
+                <input type="file" name="email_file" id="email_file" accept=".txt,.pdf">
+            </div>
 
-        <button type="submit">Enviar</button>
-    </form>
+            <div class="form-group">
+                <label for="email_text">Ou digite o conteúdo do e-mail:</label>
+                <textarea name="email_text" id="email_text" rows="8" placeholder="Digite aqui..."></textarea>
+            </div>
 
-    {% if email %}
-        <h3>Email Recebido:</h3>
-        <p>{{ email }}</p>
+            <button type="submit">Classificar e Gerar Resposta</button>
+        </form>
 
-        <h3>Categoria:</h3>
-        <p>{{ result }}</p>
+        <hr>
 
-        <h3>Resposta Sugerida:</h3>
-        <p>{{ response }}</p>
-    {% endif %}
+        {% if result and email %}
+        <div class="result-section">
+            <div class="result-box">
+                <h3>📂 Categoria do E-mail:</h3>
+                <p><strong>{{ result }}</strong></p>
+            </div>
+
+            <div class="result-box">
+                <h3>💌 Resposta Sugerida:</h3>
+                <pre>{{ response }}</pre>
+            </div>
+
+            <div class="result-box">
+                <h3>📄 Conteúdo do E-mail:</h3>
+                <pre>{{ email }}</pre>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
 </body>
 </html>

@@ -3,9 +3,10 @@ import os
 from classifier.classifier import classify_email
 from auto_reply import generate_auto_reply
 
+import pdfplumber  # Melhor que PyPDF2
 from dotenv import load_dotenv
 
-# Carregar as variáveis de ambiente (.env)
+# Carregar variáveis do .env
 load_dotenv()
 
 app = Flask(__name__)
@@ -15,34 +16,61 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    content = ""
+    classification = None
+    suggested_response = None
+
     if request.method == 'POST':
         uploaded_file = request.files.get('email_file')
         email_text = request.form.get('email_text')
 
-        content = ""
-        if uploaded_file:
+        # Processamento de arquivos
+        if uploaded_file and uploaded_file.filename != '':
             filepath = os.path.join(UPLOAD_FOLDER, uploaded_file.filename)
             uploaded_file.save(filepath)
+
             if uploaded_file.filename.endswith('.txt'):
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    content = f.read()
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                except Exception as e:
+                    content = f"Erro ao ler arquivo TXT: {e}"
+
             elif uploaded_file.filename.endswith('.pdf'):
-                import PyPDF2
-                with open(filepath, 'rb') as f:
-                    reader = PyPDF2.PdfReader(f)
-                    for page in reader.pages:
-                        content += page.extract_text()
-        elif email_text:
-            content = email_text
+                try:
+                    with pdfplumber.open(filepath) as pdf:
+                        for page in pdf.pages:
+                            page_text = page.extract_text()
+                            if page_text:
+                                content += page_text + "\n"
 
-        if content:
+                    if not content.strip():
+                        content = "⚠️ Não foi possível extrair texto do PDF. Verifique se é um PDF com texto pesquisável, não imagem."
+
+                except Exception as e:
+                    content = f"Erro ao processar PDF: {e}"
+
+        # Processamento de texto digitado
+        elif email_text and email_text.strip() != '':
+            content = email_text.strip()
+
+        # Se há conteúdo, faz classificação e gera resposta
+        if content and "Erro" not in content and "⚠️" not in content:
             classification = classify_email(content)
-            suggested_response = generate_auto_reply(content, classification)
+            suggested_response = generate_auto_reply(content)
+        elif content.startswith("Erro") or content.startswith("⚠️"):
+            classification = "❌ Não foi possível classificar"
+            suggested_response = content  # Mostra o erro diretamente
         else:
-            classification = "Nenhum conteúdo recebido"
-            suggested_response = "Nenhum conteúdo para gerar resposta"
+            classification = "❌ Nenhum conteúdo recebido"
+            suggested_response = "Nenhum conteúdo para gerar resposta."
 
-        return render_template('index.html', result=classification, response=suggested_response, email=content)
+        return render_template(
+            'index.html',
+            result=classification,
+            response=suggested_response,
+            email=content
+        )
 
     return render_template('index.html')
 

@@ -1,7 +1,9 @@
-flask==3.0.0
-scikit-learn==1.4.2
-pandas==2.2.2
-nltk==3.8.1
-python-dotenv==1.0.1
-joblib==1.4.2
-openai>=1.0.0
+Flask
+python-dotenv
+scikit-learn
+pandas
+nltk
+joblib
+pdfplumber
+google-generativeai
+PyPDF2
