@@ -1,14 +1,15 @@
 from flask import Flask, request, render_template
 import os
-import pickle
-from classifier.nlp_utils import preprocess_text
-import PyPDF2
+from classifier.classifier import classify_email
+from auto_reply import generate_auto_reply
 
-# Carregar o modelo treinado (pipeline completo)
-with open('classifier/model.pkl', 'rb') as file:
-    model = pickle.load(file)
+from dotenv import load_dotenv
+
+# Carregar as variáveis de ambiente (.env)
+load_dotenv()
 
 app = Flask(__name__)
+
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -26,26 +27,25 @@ def index():
                 with open(filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
             elif uploaded_file.filename.endswith('.pdf'):
+                import PyPDF2
                 with open(filepath, 'rb') as f:
                     reader = PyPDF2.PdfReader(f)
                     for page in reader.pages:
-                        content += page.extract_text() or ""
+                        content += page.extract_text()
         elif email_text:
             content = email_text
 
         if content:
-            email_clean = preprocess_text(content)
-            prediction = model.predict([email_clean])
-            label = 'Produtivo' if prediction[0] == 1 else 'Improdutivo'
+            classification = classify_email(content)
+            suggested_response = generate_auto_reply(content, classification)
         else:
-            label = "Nenhum conteúdo enviado."
+            classification = "Nenhum conteúdo recebido"
+            suggested_response = "Nenhum conteúdo para gerar resposta"
 
-        # (Deixe a resposta automática 'Em breve...' por enquanto)
-        suggested_response = "Em breve..."
-
-        return render_template('index.html', result=label, response=suggested_response, email=content)
+        return render_template('index.html', result=classification, response=suggested_response, email=content)
 
     return render_template('index.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
