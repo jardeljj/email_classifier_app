@@ -1,36 +1,37 @@
-# classifier/train_model.py
-import pickle
+import pandas as pd
+import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-from nlp_utils import preprocess_text
+import pickle
+from classifier.nlp_utils import preprocess_text
 
+# Baixar os recursos do NLTK
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+nltk.download('omw-1.4')
 
-# Dados simulados (você pode trocar por dados reais depois)
-emails = [
-    "Please update the status of my open support case.",  # Produtivo
-    "I need help accessing the system, it's urgent.",      # Produtivo
-    "Happy birthday, hope you have a great day!",          # Improdutivo
-    "Thank you for your help!",                            # Improdutivo
-    "There's an issue with the login module.",             # Produtivo
-    "Wishing you all the best in your new role!",          # Improdutivo
-]
+# Carregar dataset
+data = pd.read_csv('dataset/emails.csv')
 
-labels = ["Produtivo", "Produtivo", "Improdutivo", "Improdutivo", "Produtivo", "Improdutivo"]
+emails = data['email']
+labels = data['label']  # 1 = produtivo, 0 = improdutivo
 
-# Pré-processar textos
+# Pré-processar os textos
 emails_cleaned = [preprocess_text(email) for email in emails]
 
-# Pipeline: TF-IDF + Naive Bayes
-model = Pipeline([
-    ('tfidf', TfidfVectorizer()),
-    ('nb', MultinomialNB())
+# Criar pipeline (vetorizador + modelo)
+pipeline = Pipeline([
+    ('vectorizer', TfidfVectorizer()),
+    ('classifier', MultinomialNB())
 ])
 
-model.fit(emails_cleaned, labels)
+# Treinar
+pipeline.fit(emails_cleaned, labels)
 
-# Salvar o modelo treinado
-with open('classifier/model.pkl', 'wb') as f:
-    pickle.dump(model, f)
+# Salvar o pipeline completo
+with open('classifier/model.pkl', 'wb') as file:
+    pickle.dump(pipeline, file)
 
-print("✅ Modelo treinado e salvo com sucesso!")
+print("✅ Modelo treinado e salvo como model.pkl")

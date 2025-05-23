@@ -4,25 +4,13 @@ import pickle
 from classifier.nlp_utils import preprocess_text
 import PyPDF2
 
+# Carregar o modelo treinado (pipeline completo)
+with open('classifier/model.pkl', 'rb') as file:
+    model = pickle.load(file)
+
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# Carregar modelo treinado
-with open('classifier/model.pkl', 'rb') as file:
-    model_data = pickle.load(file)
-
-vectorizer = model_data['vectorizer']
-model = model_data['model']
-
-# Função para classificar o email
-def classify_email(email):
-    email_cleaned = preprocess_text(email)
-    email_vector = vectorizer.transform([email_cleaned])
-    prediction = model.predict(email_vector)
-    label = 'Produtivo' if prediction[0] == 1 else 'Improdutivo'
-    return label
-
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -41,21 +29,23 @@ def index():
                 with open(filepath, 'rb') as f:
                     reader = PyPDF2.PdfReader(f)
                     for page in reader.pages:
-                        content += page.extract_text()
+                        content += page.extract_text() or ""
         elif email_text:
             content = email_text
 
-        if content.strip():
-            classification = classify_email(content)
-            suggested_response = "Em breve..."  # Vai entrar o auto_reply.py depois
+        if content:
+            email_clean = preprocess_text(content)
+            prediction = model.predict([email_clean])
+            label = 'Produtivo' if prediction[0] == 1 else 'Improdutivo'
         else:
-            classification = "Nenhum conteúdo fornecido."
-            suggested_response = "Nenhuma resposta gerada."
+            label = "Nenhum conteúdo enviado."
 
-        return render_template('index.html', result=classification, response=suggested_response, email=content)
+        # (Deixe a resposta automática 'Em breve...' por enquanto)
+        suggested_response = "Em breve..."
+
+        return render_template('index.html', result=label, response=suggested_response, email=content)
 
     return render_template('index.html')
-
 
 if __name__ == '__main__':
     app.run(debug=True)

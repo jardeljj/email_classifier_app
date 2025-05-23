@@ -1,30 +1,31 @@
-# classifier/nlp_utils.py
-import re
-import string
 import nltk
+import string
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import RegexpTokenizer
 
-# Execute isso uma vez no início (coloca no README também)
-nltk.download('punkt')
+# Baixar recursos necessários (executa uma única vez)
 nltk.download('stopwords')
 nltk.download('wordnet')
-
-stop_words = set(stopwords.words('english'))
-lemmatizer = WordNetLemmatizer()
+nltk.download('omw-1.4')
 
 def preprocess_text(text):
-    # Lowercase
+    # Converter para minúsculas
     text = text.lower()
 
-    # Remove pontuação e números
-    text = re.sub(r'[\d]', '', text)
+    # Remover pontuação
     text = text.translate(str.maketrans('', '', string.punctuation))
 
-    # Tokenização
-    tokens = text.split()
+    # Tokenizar (para português, usamos Regex para pegar palavras)
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(text)
 
-    # Remoção de stopwords e lemmatização
-    cleaned = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words]
+    # Remover stopwords
+    stop_words = set(stopwords.words('portuguese'))
+    tokens = [word for word in tokens if word not in stop_words]
 
-    return ' '.join(cleaned)
+    # Lematização (em inglês, por limitação do WordNetLemmatizer)
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(word) for word in tokens]
+
+    return ' '.join(tokens)
