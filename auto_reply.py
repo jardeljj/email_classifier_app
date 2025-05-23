@@ -1,15 +1,16 @@
 import os
 from dotenv import load_dotenv
-from google import genai
+import google.generativeai as genai
 
 load_dotenv()
 
 # Configura a chave da API
 api_key = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
+genai.configure(api_key=api_key)
 
 def generate_auto_reply(email_text):
     try:
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash-latest")
         prompt = f"""
         Você é um assistente de atendimento. Leia o e-mail abaixo e gere uma resposta educada, profissional e clara.
 
@@ -19,8 +20,7 @@ def generate_auto_reply(email_text):
         Resposta sugerida:
         """
 
-        response = client.models.generate_content(
-            model="gemini-1.5-flash-latest",  # ou gemini-1.5-pro-latest se quiser mais qualidade
+        response = model.generate_content( 
             contents=prompt,
         )
 
